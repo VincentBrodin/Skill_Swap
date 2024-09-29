@@ -37,7 +37,7 @@ func main() {
 	})
 
 	// Static
-	app.Static("/js/", "src")
+	app.Static("/src/", "src")
 
 	// Routes
 
@@ -71,6 +71,53 @@ func main() {
 			"User":   sesstools.GetUser(c, store),
 			"Offers": dbtools.OffersAsMaps(offers),
 		}, "layouts/main")
+	})
+
+	//====Profile====
+	app.Get("/profile/*", func(c *fiber.Ctx) error {
+		param := c.Params("*")
+		user_id, err := strconv.ParseInt(param, 10, 64)
+
+		if err != nil {
+			data := flash.Get(c)
+			fmt.Println(err.Error())
+			return c.Render("error", fiber.Map{
+				"Title":        "Error",
+				"ErrorCode":    "404",
+				"ErrorMessage": "Page not fount.",
+				"Flash":        data,
+				"User":         sesstools.GetUser(c, store),
+			}, "layouts/main")
+
+		}
+
+		user, err := dbtools.GetUserFromId(user_id, db)
+
+		if err != nil {
+			data := flash.Get(c)
+			fmt.Println(err.Error())
+			return c.Render("error", fiber.Map{
+				"Title":        "Error",
+				"ErrorCode":    "404",
+				"ErrorMessage": "Page not fount.",
+				"Flash":        data,
+				"User":         sesstools.GetUser(c, store),
+			}, "layouts/main")
+
+		}
+
+		data := flash.Get(c)
+		return c.Render("user", fiber.Map{
+			"Title":   user.Username,
+			"Flash":   data,
+			"User":    sesstools.GetUser(c, store),
+			"Profile": user.AsMap(),
+		}, "layouts/main")
+	})
+
+	// Update user profile and stuff
+	app.Post("/profile", func(c *fiber.Ctx) error {
+		return nil
 	})
 
 	//====Login====
@@ -283,7 +330,7 @@ func main() {
 
 		data := flash.Get(c)
 		return c.Render("offer", fiber.Map{
-			"Title": "Error",
+			"Title": offer.Title,
 			"Flash": data,
 			"User":  sesstools.GetUser(c, store),
 			"Offer": offer.AsMap(),
