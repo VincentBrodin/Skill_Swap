@@ -43,6 +43,9 @@ func main() {
 
 	//====Index====
 	app.Get("/", func(c *fiber.Ctx) error {
+		if sesstools.HasSess(c, store) {
+			return c.Redirect("/home")
+		}
 		data := flash.Get(c)
 
 		return c.Render("index", fiber.Map{
@@ -56,10 +59,17 @@ func main() {
 	app.Get("/home", func(c *fiber.Ctx) error {
 		data := flash.Get(c)
 
+		offers, err := dbtools.GetOffers(db)
+
+		if err != nil {
+			return err
+		}
+
 		return c.Render("home", fiber.Map{
-			"Title": "Home",
-			"Flash": data,
-			"User":  sesstools.GetUser(c, store),
+			"Title":  "Home",
+			"Flash":  data,
+			"User":   sesstools.GetUser(c, store),
+			"Offers": dbtools.OffersAsMaps(offers),
 		}, "layouts/main")
 	})
 
@@ -269,13 +279,14 @@ func main() {
 			}, "layouts/main")
 
 		}
-		fmt.Println(offer)
+		fmt.Println(offer.Tags)
 
 		data := flash.Get(c)
 		return c.Render("offer", fiber.Map{
 			"Title": "Error",
 			"Flash": data,
 			"User":  sesstools.GetUser(c, store),
+			"Offer": offer.AsMap(),
 		}, "layouts/main")
 	})
 
@@ -288,7 +299,6 @@ func main() {
 			return flash.WithError(c, mp).Redirect("/home")
 		}
 
-		fmt.Println(sesstools.GetUser(c, store))
 		user_id, ok := sesstools.GetUser(c, store)["User_id"].(int64)
 		if !ok {
 			mp := fiber.Map{

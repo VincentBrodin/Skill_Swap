@@ -5,6 +5,7 @@
 
 <div class="container mt-5">
     <div class="row">
+        {{ range $Offer := .Offers}}
         <!-- Card 1 -->
         <div class="col-md-4 mb-4">
             <div class="card h-100">
@@ -13,33 +14,30 @@
                     <img src="https://via.placeholder.com/50" alt="Profile" class="rounded-circle me-3"
                         style="width: 50px; height: 50px;">
                     <div>
-                        <a href="/profile/123" class="text-decoration-none">
-                            <h6 class="mb-0">John Doe</h6>
+                        <a href="/profile/{{ $Offer.User.User_id}}" class="text-decoration-none">
+                            <h6 class="mb-0">{{ $Offer.User.Username}}</h6>
                         </a>
-                        <small class="text-muted">Posted 2 hours ago</small>
+                        <small class="text-muted">Posted {{$Offer.Time}} ago</small>
                     </div>
                 </div>
-
                 <!-- Offer Description -->
                 <div class="card-body">
-                    <h5 class="card-title">Graphic Design for Web Development</h5>
-                    <p class="card-text overflow-auto" style="max-height: 150px;">
-                        Looking for a skilled web developer to help build my portfolio website. In exchange, I can offer
-                        my graphic design services including logos, branding, and print design.
-                    </p>
+                    <h5 class="card-title">{{ $Offer.Title}}</h5>
+                    <p class="card-text overflow-auto" style="max-height: 150px;">{{ $Offer.Description}} </p>
 
                     <!-- Tags Section -->
                     <div class="mb-3">
-                        <span class="badge bg-primary rounded-pill">Graphic Design</span>
-                        <span class="badge bg-secondary rounded-pill">Web Development</span>
-                        <span class="badge bg-success rounded-pill">Logo Design</span>
+                        {{ range $val := $Offer.Tags }}
+                        <span class="badge bg-success rounded-pill">{{ $val }}</span>
+                        {{ end }}
                     </div>
 
                     <!-- Button -->
-                    <a href="/offer/123" class="btn btn-primary">View Offer</a>
+                    <a href="/offer/{{ $Offer.Offer_id}}" class="btn btn-primary">View Offer</a>
                 </div>
             </div>
         </div>
+        {{end}}
 
     </div>
 </div>

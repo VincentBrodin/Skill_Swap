@@ -4,7 +4,10 @@ import (
 	"database/sql"
 	"fmt"
 	"math"
+	"sort"
 	"time"
+
+	"github.com/gofiber/fiber/v2"
 )
 
 // ====Users====
@@ -26,6 +29,14 @@ func NewUser(username, email, password string) *User {
 
 func EmptyUser() *User {
 	return &User{User_id: -1}
+}
+
+func (u *User) AsMap() fiber.Map {
+	return fiber.Map{
+		"User_id":  u.User_id,
+		"Username": u.Username,
+		"Email":    u.Email,
+	}
 }
 
 func (u *User) AddToDB(db *sql.DB) error {
@@ -126,6 +137,28 @@ func EmptyOffer() *Offer {
 	}
 }
 
+func EmptyTag() *Tag {
+	return &Tag{}
+}
+
+func (o *Offer) AsMap() fiber.Map {
+	return fiber.Map{
+		"Offer_id":    o.Offer_id,
+		"Title":       o.Title,
+		"Description": o.Description,
+		"Time":        o.PrettyTime,
+		"User":        o.User.AsMap(),
+		"Tags":        TagsAsMap(o.Tags),
+	}
+}
+
+func TagsAsMap(tags []Tag) []string {
+	sTags := make([]string, len(tags))
+	for i, tag := range tags {
+		sTags[i] = tag.Tag
+	}
+	return sTags
+}
 func (o *Offer) AddToDB(db *sql.DB) error {
 	// Make statement
 	prompt := "INSERT INTO offers (user_id, title, description) VALUES (?, ?, ?)"
@@ -151,8 +184,9 @@ func (o *Offer) AddToDB(db *sql.DB) error {
 	fmt.Println(id)
 	o.Offer_id = id
 
-	for _, tag := range o.Tags {
-		err = tag.AddToDB(db)
+	for i := range o.Tags {
+		o.Tags[i].Offer_id = o.Offer_id
+		err = o.Tags[i].AddToDB(db)
 		if err != nil {
 			fmt.Println("Error trying to add tag")
 			return err
@@ -194,7 +228,87 @@ func GetOfferFromId(offer_id int64, db *sql.DB) (*Offer, error) {
 	offer.PrettyTime = formatTimeDiff(time.Now().UTC().Sub(offer.Uploaded))
 
 	offer.User, err = GetUserFromId(offer.User_id, db)
-	return offer, err
+	if err != nil {
+		return offer, err
+	}
+
+	offer.Tags, err = GetTagsFromId(offer_id, db)
+	if err != nil {
+		return offer, err
+	}
+
+	return offer, nil
+}
+
+func GetOffers(db *sql.DB) ([]Offer, error) {
+	offers := make([]Offer, 0)
+	prompt := "SELECT * FROM offers"
+	rows, err := db.Query(prompt)
+	defer rows.Close()
+
+	if err != nil {
+		return offers, err
+	}
+
+	for rows.Next() {
+		offer := EmptyOffer()
+		err = rows.Scan(&offer.Offer_id, &offer.User_id, &offer.Title, &offer.Description, &offer.Uploaded)
+		if err != nil {
+			return offers, err
+		}
+
+		offer.PrettyTime = formatTimeDiff(time.Now().UTC().Sub(offer.Uploaded))
+
+		offer.User, err = GetUserFromId(offer.User_id, db)
+		if err != nil {
+			return offers, err
+		}
+
+		offer.Tags, err = GetTagsFromId(offer.Offer_id, db)
+		if err != nil {
+			return offers, err
+		}
+		offers = append(offers, *offer)
+	}
+
+	// Sort based on time
+	sort.Slice(offers, func(i, j int) bool {
+		return !offers[i].Uploaded.Before(offers[j].Uploaded)
+	})
+
+	return offers, nil
+}
+
+func OffersAsMaps(offers []Offer) []fiber.Map {
+	maps := make([]fiber.Map, len(offers))
+
+	for i, offer := range offers {
+		maps[i] = offer.AsMap()
+	}
+
+	return maps
+}
+
+func GetTagsFromId(offer_id int64, db *sql.DB) ([]Tag, error) {
+	tags := make([]Tag, 0)
+	prompt := "SELECT * FROM offer_tags WHERE offer_id=?"
+	rows, err := db.Query(prompt, offer_id)
+	defer rows.Close()
+
+	if err != nil {
+		return tags, err
+	}
+
+	for rows.Next() {
+		tag := EmptyTag()
+		err = rows.Scan(&tag.Offer_id, &tag.Tag)
+		if err != nil {
+			return tags, err
+		}
+		tags = append(tags, *tag)
+	}
+
+	return tags, nil
 }
 
 func formatTimeDiff(d time.Duration) string {
