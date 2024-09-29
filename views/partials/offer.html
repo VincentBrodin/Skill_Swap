@@ -1,0 +1,40 @@
+<div class="position-fixed bottom-0 end-0 m-5">
+    <button type="button" class="btn btn-primary btn-lg rounded-circle shadow" title="Make an Offer"
+        data-bs-toggle="modal" data-bs-target="#offerModal">
+        <i class="fas fa-plus"></i>
+    </button>
+</div>
+
+<div class="modal fade" id="offerModal" tabindex="-1" aria-labelledby="offerModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="offerModalLabel">Create a New Offer</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form method="post" action="/offer">
+                    <div class="mb-3">
+                        <label for="offerTitle" class="form-label">Offer Title</label>
+                        <input type="text" class="form-control" id="offerTitle" placeholder="Enter your offer title"
+                            required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="offerDescription" class="form-label">Description</label>
+                        <textarea class="form-control" id="offerDescription" rows="3" placeholder="Describe your offer"
+                            required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="offerTags" class="form-label">Tags</label>
+                        <input type="text" class="form-control" id="offerTags"
+                            placeholder="e.g. Web Design, Development">
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Submit Offer</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,48 @@
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-light px-5">
+    <a class="navbar-brand" href="/">
+        <i class="fas fa-exchange-alt me-2"></i>Skill Swap
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+        aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ms-auto">
+            <li class="nav-item">
+                <a class="nav-link" href="/home">
+                    <i class="fas fa-home me-1"></i>Home
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/browse">
+                    <i class="fas fa-search me-1"></i>Browse
+                </a>
+            </li>
+            {{ if .User.User_id }}
+            <li class="nav-item">
+                <a class="nav-link" href="/inbox">
+                    <i class="fas fa-inbox me-1"></i>Inbox
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/profile">
+                    <i class="fas fa-user me-1"></i>Profile
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/logout">
+                    <i class="fas fa-sign-out-alt me-1"></i>Log out
+                </a>
+            </li>
+            {{ else }}
+            <li class="nav-item">
+                <a class="nav-link" href="/login">
+                    <i class="fas fa-sign-in-alt me-1"></i>Login
+                </a>
+            </li>
+            {{ end }}
+        </ul>
+    </div>
+</nav>

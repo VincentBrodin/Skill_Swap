@@ -1,0 +1,21 @@
+<section class="vw-100 d-flex justify-content-center align-items-center">
+    <div class="text-center">
+        <h1 class="display-1 fw-bold">Welcome to Skill Swap</h1>
+        <p class="h4 text-muted mb-4">A marketplace for exchanging skills and services, where collaboration thrives.</p>
+
+        <p class="lead text-muted m-auto" style="max-width: 1000px;">
+            At Skill Swap, we believe in the power of community. Whether you're a designer in need of a developer or a
+            writer
+            looking for marketing expertise, our platform enables users to barter their skills without monetary
+            transactions.
+            It's all about sharing knowledge and building valuable connections.
+        </p>
+
+        {{ if not .User.User_id }}
+        <div class="d-grid gap-2 d-md-block mt-4">
+            <a href="/login" class="btn btn-success btn-lg me-2">Login</a>
+            <a href="/register" class="btn btn-outline-success btn-lg">Register</a>
+        </div>
+        {{ end }}
+    </div>
+</section>
