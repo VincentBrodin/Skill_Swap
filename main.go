@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strconv"
+	"strings"
 
 	"example.com/SkillSwap/tools/dbtools"
 	"example.com/SkillSwap/tools/pswdhash"
@@ -17,14 +19,17 @@ import (
 )
 
 func main() {
-
+	// Load db
 	db, err := sql.Open("sqlite3", "data.db")
-	store := session.New()
 
 	if err != nil {
 		fmt.Println("db error", err.Error())
 		os.Exit(1)
 	}
+
+	// Start new session
+	store := session.New()
+
 	// Start app
 	engine := html.New("./views", ".html")
 	app := fiber.New(fiber.Config{
@@ -230,6 +235,89 @@ func main() {
 			"message": "Accout created!",
 		}
 		return flash.WithSuccess(c, mp).Redirect("/")
+	})
+
+	//===Offers====
+	app.Get("/offer/*", func(c *fiber.Ctx) error {
+		param := c.Params("*")
+		offer_id, err := strconv.ParseInt(param, 10, 64)
+
+		if err != nil {
+			data := flash.Get(c)
+			fmt.Println(err.Error())
+			return c.Render("error", fiber.Map{
+				"Title":        "Error",
+				"ErrorCode":    "404",
+				"ErrorMessage": "Page not fount.",
+				"Flash":        data,
+				"User":         sesstools.GetUser(c, store),
+			}, "layouts/main")
+
+		}
+
+		offer, err := dbtools.GetOfferFromId(offer_id, db)
+
+		if err != nil {
+			data := flash.Get(c)
+			fmt.Println(err.Error())
+			return c.Render("error", fiber.Map{
+				"Title":        "Error",
+				"ErrorCode":    "404",
+				"ErrorMessage": "Page not fount.",
+				"Flash":        data,
+				"User":         sesstools.GetUser(c, store),
+			}, "layouts/main")
+
+		}
+		fmt.Println(offer)
+
+		data := flash.Get(c)
+		return c.Render("offer", fiber.Map{
+			"Title": "Error",
+			"Flash": data,
+			"User":  sesstools.GetUser(c, store),
+		}, "layouts/main")
+	})
+
+	app.Post("/offer", func(c *fiber.Ctx) error {
+		// Redirect user if already logged in
+		if !sesstools.HasSess(c, store) {
+			mp := fiber.Map{
+				"message": "You are not logged in!",
+			}
+			return flash.WithError(c, mp).Redirect("/home")
+		}
+
+		fmt.Println(sesstools.GetUser(c, store))
+		user_id, ok := sesstools.GetUser(c, store)["User_id"].(int64)
+		if !ok {
+			mp := fiber.Map{
+				"message": "Could not find user!",
+			}
+			return flash.WithError(c, mp).Redirect("/home")
+
+		}
+
+		title := c.FormValue("title")
+		description := c.FormValue("description")
+		tags := c.FormValue("tags")
+		tagsArr := strings.Split(tags, ",")
+
+		offer := dbtools.NewOffer(user_id, title, description, tagsArr)
+		err := offer.AddToDB(db)
+
+		if err != nil {
+			mp := fiber.Map{
+				"message": "Could not add offer to db!",
+			}
+			fmt.Println(err.Error())
+			return flash.WithError(c, mp).Redirect("/home")
+		}
+
+		mp := fiber.Map{
+			"message": "Created offer!",
+		}
+		return flash.WithSuccess(c, mp).Redirect("/home")
 	})
 
 	log.Fatal(app.Listen(":3000"))
