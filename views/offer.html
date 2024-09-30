@@ -8,13 +8,13 @@
             <a href="/profile/{{ .Offer.User.User_id }}" class="text-decoration-none">
                 <h6 class="mb-0">{{ .Offer.User.Username }}</h6>
             </a>
-            <small class="text-muted">Posted {{ .Offer.Time }} ago</small>
+            <small class="text-muted">Posted {{ .Offer.PrettyTime }} ago</small>
         </div>
     </div>
 
     <div class="mb-3">
         {{ range $val := .Offer.Tags }}
-        <span class="badge bg-success rounded-pill">{{ $val }}</span>
+        <span class="badge bg-success rounded-pill">{{ $val.Tag }}</span>
         {{ end }}
     </div>
     <p>{{ .Offer.Description}}</p>

@@ -48,10 +48,11 @@ func main() {
 		}
 		data := flash.Get(c)
 
+		fmt.Println(sesstools.HasSess(c, store))
 		return c.Render("index", fiber.Map{
-			"Title": "Landing",
-			"Flash": data,
-			"User":  sesstools.GetUser(c, store),
+			"Title":   "Landing",
+			"Flash":   data,
+			"HasSess": sesstools.HasSess(c, store),
 		}, "layouts/main")
 	})
 
@@ -66,10 +67,10 @@ func main() {
 		}
 
 		return c.Render("home", fiber.Map{
-			"Title":  "Home",
-			"Flash":  data,
-			"User":   sesstools.GetUser(c, store),
-			"Offers": dbtools.OffersAsMaps(offers),
+			"Title":   "Home",
+			"Flash":   data,
+			"HasSess": sesstools.HasSess(c, store),
+			"Offers":  offers,
 		}, "layouts/main")
 	})
 
@@ -86,7 +87,7 @@ func main() {
 				"ErrorCode":    "404",
 				"ErrorMessage": "Page not fount.",
 				"Flash":        data,
-				"User":         sesstools.GetUser(c, store),
+				"HasSess":      sesstools.HasSess(c, store),
 			}, "layouts/main")
 
 		}
@@ -101,7 +102,7 @@ func main() {
 				"ErrorCode":    "404",
 				"ErrorMessage": "Page not fount.",
 				"Flash":        data,
-				"User":         sesstools.GetUser(c, store),
+				"HasSess":      sesstools.HasSess(c, store),
 			}, "layouts/main")
 
 		}
@@ -110,8 +111,8 @@ func main() {
 		return c.Render("user", fiber.Map{
 			"Title":   user.Username,
 			"Flash":   data,
-			"User":    sesstools.GetUser(c, store),
-			"Profile": user.AsMap(),
+			"HasSess": sesstools.HasSess(c, store),
+			"Profile": user,
 		}, "layouts/main")
 	})
 
@@ -129,9 +130,9 @@ func main() {
 
 		data := flash.Get(c)
 		return c.Render("login", fiber.Map{
-			"Title": "Login",
-			"Flash": data,
-			"User":  sesstools.GetUser(c, store),
+			"Title":   "Login",
+			"Flash":   data,
+			"HasSess": sesstools.HasSess(c, store),
 		}, "layouts/main")
 	})
 
@@ -207,9 +208,9 @@ func main() {
 
 		data := flash.Get(c)
 		return c.Render("register", fiber.Map{
-			"Title": "Register",
-			"Flash": data,
-			"User":  sesstools.GetUser(c, store),
+			"Title":   "Register",
+			"Flash":   data,
+			"HasSess": sesstools.HasSess(c, store),
 		}, "layouts/main")
 	})
 
@@ -307,7 +308,7 @@ func main() {
 				"ErrorCode":    "404",
 				"ErrorMessage": "Page not fount.",
 				"Flash":        data,
-				"User":         sesstools.GetUser(c, store),
+				"HasSess":      sesstools.HasSess(c, store),
 			}, "layouts/main")
 
 		}
@@ -322,7 +323,7 @@ func main() {
 				"ErrorCode":    "404",
 				"ErrorMessage": "Page not fount.",
 				"Flash":        data,
-				"User":         sesstools.GetUser(c, store),
+				"HasSess":      sesstools.HasSess(c, store),
 			}, "layouts/main")
 
 		}
@@ -330,10 +331,10 @@ func main() {
 
 		data := flash.Get(c)
 		return c.Render("offer", fiber.Map{
-			"Title": offer.Title,
-			"Flash": data,
-			"User":  sesstools.GetUser(c, store),
-			"Offer": offer.AsMap(),
+			"Title":   offer.Title,
+			"Flash":   data,
+			"HasSess": sesstools.HasSess(c, store),
+			"Offer":   offer,
 		}, "layouts/main")
 	})
 
@@ -346,21 +347,13 @@ func main() {
 			return flash.WithError(c, mp).Redirect("/home")
 		}
 
-		user_id, ok := sesstools.GetUser(c, store)["User_id"].(int64)
-		if !ok {
-			mp := fiber.Map{
-				"message": "Could not find user!",
-			}
-			return flash.WithError(c, mp).Redirect("/home")
-
-		}
-
+		user := sesstools.GetUser(c, store)
 		title := c.FormValue("title")
 		description := c.FormValue("description")
 		tags := c.FormValue("tags")
 		tagsArr := strings.Split(tags, ",")
 
-		offer := dbtools.NewOffer(user_id, title, description, tagsArr)
+		offer := dbtools.NewOffer(user, title, description, tagsArr)
 		err := offer.AddToDB(db)
 
 		if err != nil {

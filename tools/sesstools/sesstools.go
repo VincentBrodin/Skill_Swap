@@ -14,9 +14,7 @@ func AddUser(c *fiber.Ctx, s *session.Store, user *dbtools.User) error {
 		return err
 	}
 
-	sess.Set("user_id", user.User_id)
-	sess.Set("username", user.Username)
-	sess.Set("email", user.Email)
+	sess.Set("User_id", user.User_id)
 
 	err = sess.Save()
 
@@ -26,28 +24,23 @@ func AddUser(c *fiber.Ctx, s *session.Store, user *dbtools.User) error {
 	return nil
 }
 
-func GetUser(c *fiber.Ctx, s *session.Store) fiber.Map {
+func GetUser(c *fiber.Ctx, s *session.Store) int64 {
 	sess, err := s.Get(c)
 	if err != nil {
-		return fiber.Map{}
+		return -1
 	}
-
-	return fiber.Map{
-		"User_id":  sess.Get("user_id"),
-		"Username": sess.Get("username"),
-		"Email":    sess.Get("email"),
+	user_interface := sess.Get("User_id")
+	if user_interface == nil {
+		return -1
 	}
+	user_id, ok := user_interface.(int64)
+	if !ok {
+		return -1
+	}
+	return user_id
 }
 
 func HasSess(c *fiber.Ctx, s *session.Store) bool {
-	mp := GetUser(c, s)
-	if len(mp) == 0 {
-		return false
-	}
-
-	if mp == nil {
-		return false
-	}
-
-	return mp["User_id"] != nil
+	user_id := GetUser(c, s)
+	return user_id != -1
 }

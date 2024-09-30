@@ -1,5 +1,3 @@
-console.log("Hello world");
-
 function TogglePassword(inputId, iconId) {
     const input = document.getElementById(inputId);
     const icon = document.getElementById(iconId);
@@ -12,5 +10,17 @@ function TogglePassword(inputId, iconId) {
         input.type = "password";
         icon.classList.add("fa-eye");
         icon.classList.remove("fa-eye-slash");
+    }
+}
+
+function MatchPassword(inputIdA, inputIdB, promptId) {
+    const inputA = document.getElementById(inputIdA);
+    const inputB = document.getElementById(inputIdB);
+    const prompt = document.getElementById(promptId);
+
+    if (inputA.value != inputB.value && inputB.value != "") {
+        prompt.innerText = "Password must match";
+    } else {
+        prompt.innerText = "";
     }
 }
