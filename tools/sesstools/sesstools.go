@@ -24,6 +24,7 @@ func AddUser(c *fiber.Ctx, s *session.Store, user *dbtools.User) error {
 	return nil
 }
 
+// Returns -1 if no user was found and the user id otherwise
 func GetUser(c *fiber.Ctx, s *session.Store) int64 {
 	sess, err := s.Get(c)
 	if err != nil {

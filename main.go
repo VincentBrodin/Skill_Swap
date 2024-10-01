@@ -77,7 +77,8 @@ func main() {
 	//====Profile====
 	app.Get("/profile/*", func(c *fiber.Ctx) error {
 		param := c.Params("*")
-		user_id, err := strconv.ParseInt(param, 10, 64)
+		profileUser_id, err := strconv.ParseInt(param, 10, 64)
+		user_id := sesstools.GetUser(c, store)
 
 		if err != nil {
 			data := flash.Get(c)
@@ -92,7 +93,7 @@ func main() {
 
 		}
 
-		user, err := dbtools.GetUserFromId(user_id, db)
+		user, err := dbtools.GetUserFromId(profileUser_id, db)
 
 		if err != nil {
 			data := flash.Get(c)
@@ -113,11 +114,139 @@ func main() {
 			"Flash":   data,
 			"HasSess": sesstools.HasSess(c, store),
 			"Profile": user,
+			"Owner":   user_id == user.User_id,
+		}, "layouts/main")
+	})
+
+	app.Get("/edit_profile", func(c *fiber.Ctx) error {
+		fmt.Println(sesstools.HasSess(c, store))
+		if !sesstools.HasSess(c, store) {
+			c.Redirect("/login")
+		}
+
+		user_id := sesstools.GetUser(c, store)
+		user, err := dbtools.GetUserFromId(user_id, db)
+
+		if err != nil {
+			data := flash.Get(c)
+			fmt.Println(err.Error())
+			return c.Render("error", fiber.Map{
+				"Title":        "Error",
+				"ErrorCode":    "404",
+				"ErrorMessage": err.Error(),
+				"Flash":        data,
+				"HasSess":      sesstools.HasSess(c, store),
+			}, "layouts/main")
+
+		}
+
+		data := flash.Get(c)
+		return c.Render("profile", fiber.Map{
+			"Title":   user.Username,
+			"Flash":   data,
+			"HasSess": sesstools.HasSess(c, store),
+			"Profile": user,
 		}, "layouts/main")
 	})
 
 	// Update user profile and stuff
-	app.Post("/profile", func(c *fiber.Ctx) error {
+	app.Post("/edit_profile/profile", func(c *fiber.Ctx) error {
+		if !sesstools.HasSess(c, store) {
+			return c.Redirect("/")
+		}
+
+		user_id := sesstools.GetUser(c, store)
+		user, err := dbtools.GetUserFromId(user_id, db)
+
+		if err != nil {
+			fmt.Println(err.Error())
+			mp := fiber.Map{
+				"message": "Could not find user",
+			}
+			return flash.WithError(c, mp).Redirect("/edit_profile")
+		}
+
+		username := c.FormValue("username")
+		user.Username = username
+
+		description := c.FormValue("description")
+		user.Description = description
+
+		err = user.Update(db)
+
+		if err != nil {
+			fmt.Println(err.Error())
+			mp := fiber.Map{
+				"message": "Could not update user",
+			}
+			return flash.WithError(c, mp).Redirect("/edit_profile")
+		}
+
+		// profilePicture, err := c.FormFile("profile-picture")
+		// if err != nil {
+		// 	fmt.Println(err.Error())
+		// 	c.Redirect("/edit_profile")
+		// }
+
+		mp := fiber.Map{
+			"message": "Youre profile is updated",
+		}
+		return flash.WithSuccess(c, mp).Redirect("/edit_profile")
+	})
+
+	app.Post("/edit_profile/change_password", func(c *fiber.Ctx) error {
+		if !sesstools.HasSess(c, store) {
+			return c.Redirect("/")
+		}
+
+		user_id := sesstools.GetUser(c, store)
+		user, err := dbtools.GetUserFromId(user_id, db)
+
+		if err != nil {
+			fmt.Println(err.Error())
+			mp := fiber.Map{
+				"message": "Could not find user",
+			}
+			return flash.WithError(c, mp).Redirect("/edit_profile")
+		}
+
+		currentPassword := c.FormValue("current-password")
+		if !pswdhash.VerifyPassword(currentPassword, user.Password) {
+			mp := fiber.Map{
+				"message": "Password is not right",
+			}
+			return flash.WithError(c, mp).Redirect("/edit_profile")
+
+		}
+
+		newPassword := c.FormValue("new-password")
+		password, err := pswdhash.HashPassword(newPassword)
+		if err != nil {
+			fmt.Println(err.Error())
+			mp := fiber.Map{
+				"message": "Could not hash password",
+			}
+			return flash.WithError(c, mp).Redirect("/edit_profile")
+		}
+
+		user.Password = password
+		err = user.Update(db)
+		if err != nil {
+			fmt.Println(err.Error())
+			mp := fiber.Map{
+				"message": "Could not update password",
+			}
+			return flash.WithError(c, mp).Redirect("/edit_profile")
+		}
+
+		mp := fiber.Map{
+			"message": "Youre password is updated",
+		}
+		return flash.WithSuccess(c, mp).Redirect("/edit_profile")
+
+	})
+
+	app.Post("/edit_profile/delete", func(c *fiber.Ctx) error {
 		return nil
 	})
 

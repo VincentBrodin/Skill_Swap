@@ -1,0 +1,89 @@
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card">
+                <img id="profile-picture-img" src="https://via.placeholder.com/50" class="card-img-top"
+                    alt="Profile Picture">
+                <div class="card-body text-center d-flex flex-column">
+                    <h5 class="card-title">{{.Profile.Username}}</h5>
+                    <div class="star-rating">
+                        <span class="star-rating__item" data-rating="1">★</span>
+                        <span class="star-rating__item" data-rating="2">★</span>
+                        <span class="star-rating__item" data-rating="3">★</span>
+                        <span class="star-rating__item" data-rating="4">★</span>
+                        <span class="star-rating__item" data-rating="5">★</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Edit Profile</h5>
+                    <form action="/edit_profile/profile" method="post" enctype="multipart/form-data">
+                        <div class="form-group mb-3">
+                            <label for="username">Username</label>
+                            <input type="text" class="form-control" id="username" name="username"
+                                value="{{.Profile.Username}}">
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="description">About me</label>
+                            <textarea class="form-control" id="description"
+                                name="description">{{.Profile.Description}}</textarea>
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="profile-picture">Profile Picture</label>
+                            <input type="file" id="profile-picture" class="form-control"
+                                onchange="UpdateProfilePicture('profile-picture', 'profile-picture-img')"
+                                name="profile-picture">
+                        </div>
+                        <input type="submit" class="btn btn-success" value="Save changes">
+                    </form>
+                </div>
+            </div>
+            <div class="card mt-3">
+                <div class="card-body">
+                    <h5 class="card-title">Change Password</h5>
+                    <form action="/edit_profile/change_password" method="post">
+                        <div class="form-group mb-3">
+                            <label for="current-password">Current Password</label>
+                            <div class="d-flex">
+                                <input id="current-password" type="password" class="form-control"
+                                    name="current-password" placeholder="Current Password:" required>
+                                <button type="button" class="btn position-absolute"
+                                    style="left: calc(100% - 65px); width: 50px;"
+                                    onclick="TogglePassword('current-password', 'current-password-icon')">
+                                    <i id="current-password-icon" class="fa fa-eye"></i></button>
+                            </div>
+
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="new-password">New Password</label>
+                            <div class="d-flex">
+                                <input id="new-password" type="password" class="form-control" name="new-password"
+                                    placeholder="New Password:" required>
+                                <button type="button" class="btn position-absolute"
+                                    style="left: calc(100% - 65px); width: 50px;"
+                                    onclick="TogglePassword('new-password', 'new-password-icon')">
+                                    <i id="new-password-icon" class="fa fa-eye"></i></button>
+                            </div>
+
+                        </div>
+                        <input type="submit" class="btn btn-success" value="Change password">
+                    </form>
+                </div>
+            </div>
+            <div class="card mt-3">
+                <div class="card-body">
+                    <h5 class="card-title">Delete Account</h5>
+                    <form action="/edit_profile/delete" method="post">
+                        <input type="submit" class="btn btn-danger mt-3" value="Delete Account">
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="/src/js/password.js"></script>
+<script src="/src/js/profilePicture.js"></script>

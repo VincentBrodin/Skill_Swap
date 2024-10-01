@@ -12,18 +12,20 @@ import (
 
 // ====Users====
 type User struct {
-	User_id  int64  `field:"user_id"`
-	Username string `field:"username"`
-	Email    string `field:"email"`
-	Password string `field:"password"`
+	User_id     int64  `field:"user_id"`
+	Username    string `field:"username"`
+	Email       string `field:"email"`
+	Description string `field:"description"`
+	Password    string `field:"password"`
 }
 
 func NewUser(username, email, password string) *User {
 	return &User{
-		User_id:  -1,
-		Username: username,
-		Email:    email,
-		Password: password,
+		User_id:     -1,
+		Username:    username,
+		Email:       email,
+		Description: "None",
+		Password:    password,
 	}
 }
 
@@ -41,15 +43,16 @@ func (u *User) AsMap() fiber.Map {
 
 func (u *User) AddToDB(db *sql.DB) error {
 	// Make statement
-	prompt := "INSERT INTO users (username, email, password) VALUES (?, ?, ?)"
+	prompt := "INSERT INTO users (username, email, description, password) VALUES (?, ?, ?, ?)"
 	statement, err := db.Prepare(prompt)
+	defer statement.Close()
 	if err != nil {
 		fmt.Println("Error at statement")
 		return err
 	}
 
 	// Execute statement
-	result, err := statement.Exec(u.Username, u.Email, u.Password)
+	result, err := statement.Exec(u.Username, u.Email, u.Description, u.Password)
 	if err != nil {
 		fmt.Println("Error at execution")
 		return err
@@ -67,34 +70,49 @@ func (u *User) AddToDB(db *sql.DB) error {
 	return nil
 }
 
+func (u *User) Update(db *sql.DB) error {
+	prompt := "UPDATE users SET username = ?, description = ?, email = ?, password = ? WHERE user_id = ?"
+	statement, err := db.Prepare(prompt)
+	defer statement.Close()
+
+	if err != nil {
+		fmt.Println("Error at statement")
+		return err
+	}
+
+	_, err = statement.Exec(u.Username, u.Description, u.Email, u.Password, u.User_id)
+
+	if err != nil {
+		fmt.Println("Error at execution")
+		return err
+	}
+
+	return nil
+}
+
+func rowToUser(row *sql.Row) (*User, error) {
+	user := EmptyUser()
+	err := row.Scan(&user.User_id, &user.Username, &user.Description, &user.Email, &user.Password)
+
+	return user, err
+}
+
 func GetUserFromEmail(email string, db *sql.DB) (*User, error) {
 	prompt := "SELECT * FROM users WHERE email=?"
 	row := db.QueryRow(prompt, email)
-
-	user := EmptyUser()
-	err := row.Scan(&user.User_id, &user.Username, &user.Email, &user.Password)
-
-	return user, err
+	return rowToUser(row)
 }
 
 func GetUserFromId(user_id int64, db *sql.DB) (*User, error) {
 	prompt := "SELECT * FROM users WHERE user_id=?"
 	row := db.QueryRow(prompt, user_id)
-
-	user := EmptyUser()
-	err := row.Scan(&user.User_id, &user.Username, &user.Email, &user.Password)
-
-	return user, err
+	return rowToUser(row)
 }
 
 func GetUserFromUsername(username string, db *sql.DB) (*User, error) {
 	prompt := "SELECT * FROM users WHERE username=?"
 	row := db.QueryRow(prompt, username)
-
-	user := EmptyUser()
-	err := row.Scan(&user.User_id, &user.Username, &user.Email, &user.Password)
-
-	return user, err
+	return rowToUser(row)
 }
 
 // ====Offers====
@@ -163,6 +181,7 @@ func (o *Offer) AddToDB(db *sql.DB) error {
 	// Make statement
 	prompt := "INSERT INTO offers (user_id, title, description) VALUES (?, ?, ?)"
 	statement, err := db.Prepare(prompt)
+	defer statement.Close()
 	if err != nil {
 		fmt.Println("Error at statement")
 		return err
@@ -200,6 +219,7 @@ func (t *Tag) AddToDB(db *sql.DB) error {
 	// Make statement
 	prompt := "INSERT INTO offer_tags (offer_id, tag) VALUES (?, ?)"
 	statement, err := db.Prepare(prompt)
+	defer statement.Close()
 	if err != nil {
 		fmt.Println("Error at statement")
 		return err
