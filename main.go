@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"example.com/SkillSwap/tools/dbtools"
+	"example.com/SkillSwap/tools/imgtools"
 	"example.com/SkillSwap/tools/pswdhash"
 	"example.com/SkillSwap/tools/sesstools"
 	"github.com/gofiber/fiber/v2"
@@ -182,11 +183,32 @@ func main() {
 			return flash.WithError(c, mp).Redirect("/edit_profile")
 		}
 
-		// profilePicture, err := c.FormFile("profile-picture")
-		// if err != nil {
-		// 	fmt.Println(err.Error())
-		// 	c.Redirect("/edit_profile")
-		// }
+		profilePicture, err := c.FormFile("profile-picture")
+		if err != nil {
+			fmt.Println(err.Error())
+			mp := fiber.Map{
+				"message": "Could not get file",
+			}
+			return flash.WithError(c, mp).Redirect("/edit_profile")
+		}
+
+		if profilePicture != nil {
+			fmt.Println("Got picture")
+			file, err := profilePicture.Open()
+			if err != nil {
+				fmt.Println(err.Error())
+				mp := fiber.Map{
+					"message": "Could not get file",
+				}
+				return flash.WithError(c, mp).Redirect("/edit_profile")
+			}
+			defer file.Close()
+			img, err := imgtools.MfToImage(file)
+			img = imgtools.ResizeImage3x3(img, 250, 250)
+			imgtools.SaveImage(img, fmt.Sprintf("./src/images/%d.png", user.User_id))
+		} else {
+			fmt.Println("No picture")
+		}
 
 		mp := fiber.Map{
 			"message": "Youre profile is updated",
@@ -415,8 +437,18 @@ func main() {
 			}
 			fmt.Println(err.Error())
 			return flash.WithError(c, mp).Redirect("/register")
-
 		}
+
+		// Create profile picture
+		img, err := imgtools.LoadImage("./src/images/avatar.png")
+		if err != nil {
+			mp := fiber.Map{
+				"message": "Could not set profile picture",
+			}
+			fmt.Println(err.Error())
+			return flash.WithError(c, mp).Redirect("/register")
+		}
+		imgtools.SaveImage(img, fmt.Sprintf("./src/images/%d.png", user.User_id))
 
 		mp := fiber.Map{
 			"message": "Accout created!",
