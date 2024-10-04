@@ -11,6 +11,10 @@
 *.db
 *.png
 
+# Remove air stuff
+/tmp
+.air.toml
+
 # Test binary, built with `go test -c`
 *.test
 
