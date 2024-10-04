@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"image"
 	"image/color"
+	_ "image/gif"
 	"image/jpeg"
 	"image/png"
 	"math"
@@ -19,21 +20,8 @@ func LoadImage(path string) (image.Image, error) {
 	}
 	defer file.Close()
 
-	format, err := getExtension(path)
-	if err != nil {
-		return nil, err
-	}
-
-	switch format {
-	case ".png":
-		img, err := png.Decode(file)
-		return img, err
-	case ".jpg", ".jpeg":
-		image, err := jpeg.Decode(file)
-		return image, err
-	default:
-		return nil, fmt.Errorf("Do not recognize format")
-	}
+	img, _, err := image.Decode(file)
+	return img, err
 }
 
 func MfToImage(file multipart.File) (image.Image, error) {
