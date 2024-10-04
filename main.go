@@ -8,10 +8,10 @@ import (
 	"strconv"
 	"strings"
 
-	"example.com/SkillSwap/tools/dbtools"
-	"example.com/SkillSwap/tools/imgtools"
-	"example.com/SkillSwap/tools/pswdhash"
-	"example.com/SkillSwap/tools/sesstools"
+	"github.com/VincentBrodin/Skill_Swap/tools/dbtools"
+	"github.com/VincentBrodin/Skill_Swap/tools/imgtools"
+	"github.com/VincentBrodin/Skill_Swap/tools/pswdhash"
+	"github.com/VincentBrodin/Skill_Swap/tools/sesstools"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/session"
 	"github.com/gofiber/template/html/v2"
@@ -38,8 +38,8 @@ func main() {
 	})
 
 	// Static
-	app.Static("/src/js/", "./src/js/")
-	app.Static("/src/images/", "./src/images/", fiber.Static{
+	app.Static("js/", "./src/js/")
+	app.Static("images/", "./src/images/", fiber.Static{
 		CacheDuration: 0,
 		MaxAge:        0,
 	})

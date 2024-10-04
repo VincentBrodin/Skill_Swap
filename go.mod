@@ -1,4 +1,4 @@
-module example.com/SkillSwap
+module github.com/VincentBrodin/Skill_Swap
 
 go 1.23.1
 

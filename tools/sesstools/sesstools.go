@@ -1,7 +1,7 @@
 package sesstools
 
 import (
-	"example.com/SkillSwap/tools/dbtools"
+	"github.com/VincentBrodin/Skill_Swap/tools/dbtools"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/session"
 )
