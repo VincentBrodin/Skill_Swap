@@ -38,7 +38,12 @@ func main() {
 	})
 
 	// Static
-	app.Static("/src/", "src")
+	app.Static("/src/js/", "./src/js/")
+	app.Static("/src/images/", "./src/images/", fiber.Static{
+		CacheDuration: 0,
+		MaxAge:        0,
+	})
+	// Dynamic
 
 	// Routes
 
@@ -119,6 +124,7 @@ func main() {
 		}, "layouts/main")
 	})
 
+	//====Edit Profile====
 	app.Get("/edit_profile", func(c *fiber.Ctx) error {
 		fmt.Println(sesstools.HasSess(c, store))
 		if !sesstools.HasSess(c, store) {
@@ -183,6 +189,19 @@ func main() {
 			return flash.WithError(c, mp).Redirect("/edit_profile")
 		}
 
+		mp := fiber.Map{
+			"message": "Youre profile is updated",
+		}
+		return flash.WithSuccess(c, mp).Redirect("/edit_profile")
+	})
+
+	app.Post("/edit_profile/profile_picture", func(c *fiber.Ctx) error {
+		if !sesstools.HasSess(c, store) {
+			return c.Redirect("/")
+		}
+
+		user_id := sesstools.GetUser(c, store)
+
 		profilePicture, err := c.FormFile("profile-picture")
 		if err != nil {
 			fmt.Println(err.Error())
@@ -192,23 +211,25 @@ func main() {
 			return flash.WithError(c, mp).Redirect("/edit_profile")
 		}
 
-		if profilePicture != nil {
-			fmt.Println("Got picture")
-			file, err := profilePicture.Open()
-			if err != nil {
-				fmt.Println(err.Error())
-				mp := fiber.Map{
-					"message": "Could not get file",
-				}
-				return flash.WithError(c, mp).Redirect("/edit_profile")
+		file, err := profilePicture.Open()
+		if err != nil {
+			fmt.Println(err.Error())
+			mp := fiber.Map{
+				"message": "Could not get file",
 			}
-			defer file.Close()
-			img, err := imgtools.MfToImage(file)
-			img = imgtools.ResizeImage3x3(img, 250, 250)
-			imgtools.SaveImage(img, fmt.Sprintf("./src/images/%d.png", user.User_id))
-		} else {
-			fmt.Println("No picture")
+			return flash.WithError(c, mp).Redirect("/edit_profile")
 		}
+		defer file.Close()
+		img, err := imgtools.MfToImage(file)
+		if err != nil {
+			fmt.Println(err.Error())
+			mp := fiber.Map{
+				"message": "Could not get file",
+			}
+			return flash.WithError(c, mp).Redirect("/edit_profile")
+		}
+		img = imgtools.ResizeImage3x3(img, 250, 250)
+		imgtools.SaveImage(img, fmt.Sprintf("./src/images/%d.png", user_id))
 
 		mp := fiber.Map{
 			"message": "Youre profile is updated",

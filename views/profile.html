@@ -31,13 +31,17 @@
                             <textarea class="form-control" id="description"
                                 name="description">{{.Profile.Description}}</textarea>
                         </div>
+                        <input type="submit" class="btn btn-success mb-3" value="Save changes">
+                    </form>
+
+                    <form action="/edit_profile/profile_picture" method="post" enctype="multipart/form-data">
                         <div class="form-group mb-3">
                             <label for="profile-picture">Profile Picture</label>
                             <input type="file" id="profile-picture" class="form-control"
                                 onchange="UpdateProfilePicture('profile-picture', 'profile-picture-img')"
                                 name="profile-picture">
                         </div>
-                        <input type="submit" class="btn btn-success" value="Save changes">
+                        <input type="submit" class="btn btn-success" value="Update profile picture">
                     </form>
                 </div>
             </div>
